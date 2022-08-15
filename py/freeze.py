@@ -4,6 +4,7 @@ GraphDef to disk.
 """
 
 import argparse
+import os
 
 import tensorflow as tf
 from tensorflow.python.framework import convert_to_constants
@@ -56,6 +57,14 @@ def main(args):
         'frozen_graph.pb',
         as_text=False
     )
+
+    # Write input / output names
+    with open(os.path.join(args.output_path, 'inputs'), 'w') as f:
+        inputs = ','.join([tensor.name for tensor in frozen_model.inputs])
+        f.write(inputs)
+    with open(os.path.join(args.output_path, 'outputs'), 'w') as f:
+        outputs = ','.join([tensor.name for tensor in frozen_model.outputs])
+        f.write(outputs)
 
 if __name__ == "__main__":
     args = parse_args()
