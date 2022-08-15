@@ -12,6 +12,15 @@ Some changes are needed to the current C++ API to do this:
 
 Additionally, for step (2), the current script (in `py/convert.py`) will load the SavedModel, rather than the frozen GraphDef. This may create issues for the comparison if the Python conversion does not freeze the model in the same way as in the freeze script (in `py/freeze.py`).
 
+## TF Patch
+
+Update the C++ conversion API to better match the Python one by applying the included patch file. In the 22.08 container:
+
+```
+cd /opt/tensorflow/tensorflow-source
+patch -p1 < /workspace/tftrt-convert-comparison/patch/tftrt-convert.patch
+```
+
 ## Running
 
 To do this comparison for a particular SavedModel:
