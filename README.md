@@ -10,6 +10,8 @@ Some changes are needed to the current C++ API to do this:
 - Ensure that optimizations run are identical between C++ and Python
 - Change `ConvertAndBuild` to only convert and return the converted GraphDef
 
+Additionally, for step (2), the current script (in `py/convert.py`) will load the SavedModel, rather than the frozen GraphDef. This may create issues for the comparison if the Python conversion does not freeze the model in the same way as in the freeze script (in `py/freeze.py`).
+
 ## Running
 
 To do this comparison for a particular SavedModel:
