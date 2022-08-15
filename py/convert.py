@@ -53,9 +53,6 @@ def main(args):
         use_dynamic_shape=False,
     )
 
-    print("TF-TRT Converter Parameters:")
-    print(trt_converter_params)
-
     # Convert
     converter = trt.TrtGraphConverterV2(**trt_converter_params)
     converted_func = converter.convert()

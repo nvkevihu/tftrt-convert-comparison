@@ -1,0 +1,61 @@
+diff --git a/tensorflow/compiler/tf2tensorrt/trt_convert_api.cc b/tensorflow/compiler/tf2tensorrt/trt_convert_api.cc
+index 4efbae1..c4b9b0f 100644
+--- a/tensorflow/compiler/tf2tensorrt/trt_convert_api.cc
++++ b/tensorflow/compiler/tf2tensorrt/trt_convert_api.cc
+@@ -121,16 +121,21 @@ Status GetTrtRewriterConfig(const TfTrtConversionParams& params,
+       IS_TRT_VERSION_GE(8, 0, 0, 0));
+ 
+   // Initial transformations before TensorRTOptimizer is called
+-  opt_config->add_optimizers("function");
+-  opt_config->add_optimizers("constfold");
++  opt_config->add_optimizers("pruning");
++  opt_config->add_optimizers("debug_stripper");
+   opt_config->add_optimizers("layout");
++  opt_config->add_optimizers("dependency");
+   opt_config->add_optimizers("constfold");
++  opt_config->add_optimizers("common_subgraph_elimination");
+ 
+   // Parameters for TensorRTOptimizer
+   auto trt_optimizer = opt_config->add_custom_optimizers();
+   trt_optimizer->set_name("TensorRTOptimizer");
+ 
+   auto trt_parameter_map = trt_optimizer->mutable_parameter_map();
++  (*trt_parameter_map)["dla_core"].set_i(-1);
++  (*trt_parameter_map)["dla_fallback_layers"].set_i(-1);
++  (*trt_parameter_map)["enable_sparse_compute"].set_b(true);
+   (*trt_parameter_map)["is_dynamic_op"].set_b(true);
+   (*trt_parameter_map)["minimum_segment_size"].set_i(
+       params.minimum_segment_size);
+@@ -138,7 +143,6 @@ Status GetTrtRewriterConfig(const TfTrtConversionParams& params,
+   TF_RETURN_IF_ERROR(
+       TrtPrecisionModeToName(params.precision_mode, &prec_string));
+   (*trt_parameter_map)["precision_mode"].set_s(prec_string);
+-  (*trt_parameter_map)["max_batch_size"].set_i(1);
+   (*trt_parameter_map)["max_workspace_size_bytes"].set_i(
+       params.max_workspace_size_bytes);
+   (*trt_parameter_map)["max_cached_engines"].set_i(params.max_cached_engines);
+@@ -146,8 +150,10 @@ Status GetTrtRewriterConfig(const TfTrtConversionParams& params,
+   (*trt_parameter_map)["profile_strategy"].set_s(
+       ProfileStrategyToName(params.profile_strategy));
+   (*trt_parameter_map)["use_implicit_batch"].set_b(!params.use_dynamic_shape);
+-  (*trt_parameter_map)["_allow_build_at_runtime"].set_b(
++  (*trt_parameter_map)["allow_build_at_runtime"].set_b(
+       params.allow_build_at_runtime);
++
++  opt_config->add_custom_optimizers()->set_name("constfold");
+   return Status::OK();
+ }
+ 
+diff --git a/tensorflow/python/compiler/tensorrt/trt_convert.py b/tensorflow/python/compiler/tensorrt/trt_convert.py
+index 62252ea..6d9011c 100644
+--- a/tensorflow/python/compiler/tensorrt/trt_convert.py
++++ b/tensorflow/python/compiler/tensorrt/trt_convert.py
+@@ -1285,6 +1285,8 @@ class TrtGraphConverterV2(object):
+         profile_strategy=self._profile_strategy)
+     grappler_session_config.graph_options.rewrite_options.CopyFrom(
+         custom_rewriter_config)
++    # For debugging
++    print(grappler_session_config)
+     return tf_optimizer.OptimizeGraph(
+         grappler_session_config, meta_graph_def, graph_id=b"tf_graph")
+ 
