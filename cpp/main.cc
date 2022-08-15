@@ -110,7 +110,7 @@ int main(int argc, char* argv[]) {
   status_or_gdef = tensorflow::tensorrt::ConvertAndBuild(
       graph, input_names, output_names, inputs,
       params);
-  TFTRT_ENSURE_OK(status_or_gdef.ok());
+  TFTRT_ENSURE_OK(status_or_gdef.status());
   converted_graph_def = status_or_gdef.ValueOrDie();
   
   // Serialize converted GraphDef
