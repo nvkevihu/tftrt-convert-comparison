@@ -19,14 +19,30 @@ Update the C++ conversion API to better match the Python one by applying the inc
 ```
 cd /opt/tensorflow/tensorflow-source
 patch -p1 < /workspace/tftrt-convert-comparison/patch/tftrt-convert.patch
+patch -p1 < /workspace/tftrt-convert-comparison/patch/trt-build-verbose.patch
+```
+
+## Dependencies
+
+Visualizing built engines relies on TREx, found [here](https://github.com/NVIDIA/TensorRT/tree/b55c4710ce01f076c26710a48879fcb2661be4a9/tools/experimental/trt-engine-explorer). Install this with pip:
+
+```
+cd [TRex directory] && pip install .
+```
+
+Graphviz will also be needed:
+
+```
+apt-get update
+apt-get install graphviz
 ```
 
 ## Running
 
-To do this comparison for a particular SavedModel:
+To do this comparison for a particular SavedModel, for example:
 
 ```
-bash compare.sh /path/to/saved/model/dir
+bash compare.sh /models/image_classification/inception_v3 299
 ```
 
-The script performs the above steps in order.
+The script performs the above steps in order. Note that this only works OOTB for image classification models, as it assumes that inputs are images for engine building.

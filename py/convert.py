@@ -4,6 +4,7 @@ the resulting converted GraphDef to disk.
 """
 
 import argparse
+import os
 
 import tensorflow as tf
 from tensorflow.python.compiler.tensorrt import trt_convert as trt
@@ -36,6 +37,12 @@ def parse_args():
         type=str,
         help="Path to serialize the converted GraphDef."
     )
+    parser.add_argument(
+        "--input_size",
+        type=int,
+        default=224,
+        help="Image size to use for engine building (assumes image classification)."
+    )
     return parser.parse_args()
 
 def main(args):
@@ -65,6 +72,22 @@ def main(args):
         'converted_graph_py.pb',
         as_text=False
     )
+
+    # Infer
+    @tf.function
+    def infer(x):
+        return tf.graph_util.import_graph_def(
+            converted_graph_def,
+            input_map={'input:0': x},
+            return_elements=['logits:0']
+        )
+
+    # Create input and infer
+    x = tf.ones((64, args.input_size, args.input_size, 3), dtype=tf.float32)
+    infer(x)
+
+    # Save engines
+    converter.save(os.path.join(args.output_path, 'saved_model'))
 
 if __name__ == "__main__":
     args = parse_args()

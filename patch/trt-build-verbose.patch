@@ -1,0 +1,12 @@
+diff --git a/tensorflow/compiler/tf2tensorrt/convert/convert_nodes.cc b/tensorflow/compiler/tf2tensorrt/convert/convert_nodes.cc
+index f3a122c..d6a70e9 100644
+--- a/tensorflow/compiler/tf2tensorrt/convert/convert_nodes.cc
++++ b/tensorflow/compiler/tf2tensorrt/convert/convert_nodes.cc
+@@ -1223,6 +1223,7 @@ Status Converter::BuildCudaEngine(
+   TrtUniquePtrType<nvinfer1::IBuilderConfig> builder_config(
+       trt_builder_->createBuilderConfig());
+   builder_config->setMaxWorkspaceSize(max_workspace_size_bytes);
++  builder_config->setProfilingVerbosity(nvinfer1::ProfilingVerbosity::kDETAILED);
+ 
+   // Create the algorithm selector. For TensorRT 7.x, the algorithm selector
+   // cannot be used when building with INT8 calibration.

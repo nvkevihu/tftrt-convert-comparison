@@ -20,6 +20,11 @@ def parse_args():
         type=str,
         help="Path to the second GraphDef."
     )
+    parser.add_argument(
+        "--print_graphs",
+        action='store_true',
+        help="If set, print the nodes of the graphs."
+    )
     return parser.parse_args()
 
 def load(graph_path):
@@ -82,6 +87,9 @@ def compare(g1, g2):
 def main(args):
     first_graph = load(args.first_graph_path)
     second_graph = load(args.second_graph_path)
+    if args.print_graphs:
+        print_graph_nodes(first_graph)
+        print_graph_nodes(second_graph)
     compare(first_graph, second_graph)
 
 if __name__ == "__main__":
