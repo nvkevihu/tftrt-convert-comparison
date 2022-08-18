@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.13)
-project(TFTRT_Converter)
+project(TFTRT_CPP_Examples)
 
 #-------------------------------------------------------------
 # Configuration
@@ -35,9 +35,9 @@ add_custom_command(OUTPUT ${tftrt_third_party_includes}
 add_custom_target(tf_symlinks DEPENDS ${tf_framework_shared_lib} ${tf_shared_lib} ${tftrt_third_party_includes})
 
 #-----------------------------------------------------------
-# Benchmark Runner Targets
+# Converter Targets
 #-----------------------------------------------------------
-add_executable(tftrt_converter main.cc)
+add_executable(tftrt_converter converter.cc)
 
 target_link_libraries(tftrt_converter tensorflow_cc)
 target_link_libraries(tftrt_converter tensorflow_framework)
@@ -53,3 +53,42 @@ target_include_directories(tftrt_converter PRIVATE ${tf_python_dir}/include)
 target_include_directories(tftrt_converter PRIVATE ${CUDA_HOME}/include)
 
 add_dependencies(tftrt_converter tf_symlinks)
+
+#-----------------------------------------------------------
+# E2E Converter Targets
+#-----------------------------------------------------------
+add_executable(tftrt_e2e_converter e2e_converter.cc)
+
+target_link_libraries(tftrt_e2e_converter tensorflow_cc)
+target_link_libraries(tftrt_e2e_converter tensorflow_framework)
+
+target_compile_options(tftrt_e2e_converter PRIVATE -D_GLIBCXX_USE_CXX11_ABI=1 -DGOOGLE_CUDA -DGOOGLE_TENSORRT)
+
+target_link_directories(tftrt_e2e_converter PRIVATE ${tf_python_dir})
+target_link_directories(tftrt_e2e_converter PRIVATE ${tf_dir})
+
+target_compile_options(tftrt_e2e_converter PRIVATE -O2 -Wl,-rpath=${tf_python_dir})
+
+target_include_directories(tftrt_e2e_converter PRIVATE ${tf_python_dir}/include)
+target_include_directories(tftrt_e2e_converter PRIVATE ${CUDA_HOME}/include)
+
+add_dependencies(tftrt_e2e_converter tf_symlinks)
+
+#-----------------------------------------------------------
+# Freeze Example Targets
+#-----------------------------------------------------------
+add_executable(tf_freezer freeze.cc)
+
+target_link_libraries(tf_freezer tensorflow_cc)
+target_link_libraries(tf_freezer tensorflow_framework)
+
+target_compile_options(tf_freezer PRIVATE -D_GLIBCXX_USE_CXX11_ABI=1 -DGOOGLE_CUDA -DGOOGLE_TENSORRT)
+
+target_link_directories(tf_freezer PRIVATE ${tf_python_dir})
+target_link_directories(tf_freezer PRIVATE ${tf_dir})
+
+target_compile_options(tf_freezer PRIVATE -O2 -Wl,-rpath=${tf_python_dir})
+
+target_include_directories(tf_freezer PRIVATE ${tf_python_dir}/include)
+
+add_dependencies(tf_freezer tf_symlinks)

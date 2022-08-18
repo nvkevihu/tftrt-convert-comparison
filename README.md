@@ -42,7 +42,9 @@ apt-get install graphviz
 To do this comparison for a particular SavedModel, for example:
 
 ```
-bash compare.sh /models/image_classification/inception_v3 299
+bash scripts/compare_partial.sh /models/huggingface/transformers/bert_base_uncased/pb_model/
 ```
 
-The script performs the above steps in order. Note that this only works OOTB for image classification models, as it assumes that inputs are images for engine building.
+The script performs the above steps in order. Note that this only works OOTB for some transformer models, as input shapes are currently hardcoded for engine building.
+
+Additional scripts are provided for comparing the results of freezing in C++ vs. Python (in `scripts/compare_frozen.sh`), and for comparing C++ conversion from a SavedModel, rather than a frozen GraphDef (in `scripts/compare_e2e.sh`).

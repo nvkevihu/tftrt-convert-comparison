@@ -1,19 +1,16 @@
 """
-Freezes a SavedModel and writes the frozen
-GraphDef to disk.
+Finds nodes of given types in a SavedModel.
 """
 
 import argparse
-import os
 
 import tensorflow as tf
-from tensorflow.python.framework import convert_to_constants
 from tensorflow.python.saved_model import tag_constants
 from tensorflow.python.saved_model import signature_constants
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        description="Freeze a SavedModel."
+        description="Find certain nodes in a SavedModel."
     )
     parser.add_argument(
         "--model_path",
@@ -32,12 +29,12 @@ def parse_args():
         default=tag_constants.SERVING,
         help="SavedModel inference tag to use."
     )
-    parser.add_argument(
-        "--output_path",
-        type=str,
-        help="Path to serialize the frozen GraphDef."
-    )
     return parser.parse_args()
+
+def find(graph, node_types):
+    for n in graph.node:
+        if n.op in node_types:
+            print("Found {} of type {}".format(n.name, n.op)) 
 
 def main(args):
     # Load SavedModel
@@ -47,26 +44,11 @@ def main(args):
     )
     model = saved_model.signatures[args.signature_key]
     model._backref_to_saved_model = saved_model
-    
-    # Freeze
-    frozen_model = convert_to_constants.convert_variables_to_constants_v2(model)
-    frozen_graph_def = frozen_model.graph.as_graph_def()
 
-    # Serialize
-    tf.io.write_graph(
-        frozen_graph_def,
-        args.output_path,
-        'frozen_graph.pb',
-        as_text=False
-    )
+    graph = model.graph.as_graph_def()
 
-    # Write input / output names
-    with open(os.path.join(args.output_path, 'inputs'), 'w') as f:
-        inputs = ','.join([tensor.name for tensor in frozen_model.inputs])
-        f.write(inputs)
-    with open(os.path.join(args.output_path, 'outputs'), 'w') as f:
-        outputs = ','.join([tensor.name for tensor in frozen_model.outputs])
-        f.write(outputs)
+    node_types = ["Placeholder", "Case", "Merge", "PartitionedCall", "StatefulPartitionedCall", "ReadVariableOp", "ResourceGather", "ResourceGatherNd", "If", "StatelessIf", "While", "StatelessWhile", "Enter", "Exit", "Identity", "NextIteration", "Switch", "_SwitchN"]
+    find(graph, node_types)
 
 if __name__ == "__main__":
     args = parse_args()

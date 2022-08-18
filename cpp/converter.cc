@@ -65,14 +65,12 @@ int main(int argc, char* argv[]) {
   string outputs_path = "/path/to/outputs/file/";
   string out_dir = "";
   string engine_out_dir = "";
-  int input_size = 224;
   std::vector<Flag> flag_list = {
       Flag("graph_path", &graph_path, "frozen GraphDef to convert"),
       Flag("inputs_path", &inputs_path, "path to text file with comma-separated input tensor names"),
       Flag("outputs_path", &outputs_path, "path to text file with comma-separated output tensor names"),
       Flag("out_dir", &out_dir, "the directory to store the converted GraphDef"),
       Flag("engine_out_dir", &engine_out_dir, "the directory to store the serialized TRT Engines"),
-      Flag("input_size", &input_size, "the image size to use for engine building (assumes image classification)")
   };
   string usage = tensorflow::Flags::Usage(argv[0], flag_list);
   const bool parse_result = tensorflow::Flags::Parse(&argc, argv, flag_list);
@@ -107,14 +105,15 @@ int main(int argc, char* argv[]) {
   params.use_calibration = false;
   params.use_dynamic_shape = false;
   
-  // Setup Inputs
-  tensorflow::TensorShape input_shape = { 64, input_size, input_size, 3 };
-  Tensor input(tensorflow::DataType::DT_FLOAT, input_shape);
+  // Setup Inputs - change this depending on the model being run
+  // TODO: Make this not hardcoded
+  tensorflow::TensorShape input_shape = { 64, 128 };
+  Tensor input(tensorflow::DataType::DT_INT32, input_shape);
   std::fill_n((float*)input.data(), input.AllocatedBytes() / 4, 1.0f);
 
   // Run conversion and build
   tensorflow::GraphDef converted_graph_def;
-  std::vector<std::vector<Tensor>> inputs = {{ input }};
+  std::vector<std::vector<Tensor>> inputs = {{ input, input }};
   tensorflow::StatusOr<tensorflow::GraphDef> status_or_gdef;
   status_or_gdef = tensorflow::tensorrt::ConvertAndBuild(
       graph, input_names, output_names, inputs,
